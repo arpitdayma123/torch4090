@@ -38,7 +38,7 @@ RUN curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey  | gpg --dear
     . /etc/os-release && \
     echo "deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit.gpg] https://nvidia.github.io/libnvidia-container/stable/deb/amd64  $VERSION_CODENAME main" | tee /etc/apt/sources.list.d/nvidia-container-toolkit.list && \
     apt update && \
-    apt install -y libnvidia-container-tools libnvidia-container1
+    apt install -y libnvidia-container-tools libnvidia-container1 \
     libcudnn8=8.9.7.29 && \
     rm -rf /var/lib/apt/lists/*
 
