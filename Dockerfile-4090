@@ -48,6 +48,7 @@ RUN mv HeyGem-Linux-Python-Hack /apps/HeyGem
 #RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
 RUN cd /apps/HeyGem/ && echo "requests" >>  requirements_0.txt  && pip install -r requirements_0.txt --extra-index-url https://download.pytorch.org/whl/cu113 
+RUN pip install runpod
 
 COPY startup.sh / 
 COPY rp_handler.py  / 
