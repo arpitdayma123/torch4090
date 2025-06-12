@@ -15,5 +15,4 @@ echo "Starting sleep infinity..."
 #sleep infinity
 
 #python run.py --audio_path example/audio.wav --video_path example/video.mp4
-
 python /rp_handler.py
