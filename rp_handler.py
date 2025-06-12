@@ -1,41 +1,76 @@
 import os
 import subprocess
+import requests
+from urllib.parse import urlparse
 from runpod.serverless.module.rp_handler import rp_serve
+
+
+def download_file(url, dest_folder):
+    """
+    下载文件到指定目录
+    """
+    if not os.path.exists(dest_folder):
+        os.makedirs(dest_folder)
+
+    parsed_url = urlparse(url)
+    filename = os.path.basename(parsed_url.path)
+    local_path = os.path.join(dest_folder, filename)
+
+    print(f"Downloading {url} to {local_path}")
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+
+    with open(local_path, 'wb') as f:
+        for chunk in response.iter_content(chunk_size=1024 * 1024):
+            if chunk:
+                f.write(chunk)
+
+    return local_path
+
 
 def handler(event):
     """
     RunPod Serverless 处理函数
-    接收 audio_path 和 video_path 参数，并运行 run.py
+    支持本地路径或 URL 的 audio_path 和 video_path
     """
     # 获取输入参数
-    audio_path = event.get("input", {}).get("audio_path")
-    video_path = event.get("input", {}).get("video_path")
+    input_data = event.get("input", {})
+    audio_url = input_data.get("audio_path")
+    video_url = input_data.get("video_path")
 
-    if not audio_path or not video_path:
+    if not audio_url or not video_url:
         return {"error": "Missing audio_path or video_path"}
 
-    if not os.path.exists(audio_path) or not os.path.exists(video_path):
-        return {"error": "Audio or Video file does not exist"}
-
-    # 执行你的 Python 脚本
     try:
+        # 下载音视频文件到 /tmp/
+        audio_path = download_file(audio_url, "/tmp/audio")
+        video_path = download_file(video_url, "/tmp/video")
+
+        # 执行你的 Python 脚本
         result = subprocess.run(
             ["python", "run.py", "--audio_path", audio_path, "--video_path", video_path],
             capture_output=True,
             text=True,
             check=True
         )
+
         return {
             "stdout": result.stdout,
             "stderr": result.stderr,
             "message": "Processing completed successfully."
         }
+
+    except requests.RequestException as e:
+        return {"error": f"Download failed: {str(e)}"}
     except subprocess.CalledProcessError as e:
         return {
             "error": "Script execution failed",
             "stdout": e.stdout,
             "stderr": e.stderr
         }
+    except Exception as e:
+        return {"error": f"Unexpected error: {str(e)}"}
+
 
 # 启动 Serverless 服务
 rp_serve(handler)
