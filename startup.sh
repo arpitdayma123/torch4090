@@ -1,5 +1,4 @@
 #!/bin/bash
-#!/bin/bash
 
 WEIGHTS_DIR="/apps/HeyGem/landmark2face_wy/checkpoints/anylang/"
 WEIGHTS_FILE="$WEIGHTS_DIR/your_model_weights.pth"
