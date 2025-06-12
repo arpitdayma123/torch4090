@@ -31,10 +31,22 @@ RUN apt update && \
         git && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*　
-RUN curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey  | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit.gpg
-RUN　curl -s -L https://nvidia.github.io/libnvidia-container/ubuntu22.04/libnvidia-container.list  | \
+# 安装系统依赖
+RUN apt update && apt install -y --no-install-recommends \
+    gnupg \
+    curl \
+    && rm -rf /var/lib/apt/lists/* && \
+
+# 添加 NVIDIA 包仓库
+    curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey  | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit.gpg && \
+    curl -s -L https://nvidia.github.io/libnvidia-container/ubuntu22.04/libnvidia-container.list  | \
     sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit.gpg] https://#g' | \
-    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list　&&　apt update　&&　apt install -y libcudnn8=8.9.7.29
+    tee /etc/apt/sources.list.d/nvidia-container-toolkit.list && \
+
+# 安装 cuDNN
+    apt update && \
+    apt install -y libcudnn8=8.9.7.29 && \
+    rm -rf /var/lib/apt/lists/*
 
 ##编译安装 Python 3.8.20
 RUN wget https://www.python.org/ftp/python/3.8.20/Python-3.8.20.tgz && tar xzf Python-3.8.20.tgz -C /
