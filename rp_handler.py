@@ -2,7 +2,7 @@ import os
 import subprocess
 import requests
 from urllib.parse import urlparse
-from runpod.serverless.module.rp_handler import rp_serve
+import runpod
 
 
 def download_file(url, dest_folder):
@@ -72,5 +72,7 @@ def handler(event):
         return {"error": f"Unexpected error: {str(e)}"}
 
 
-# 启动 Serverless 服务
-rp_serve(handler)
+#
+# Start the Serverless function when the script is run
+if __name__ == "__main__":
+    runpod.serverless.start({"handler": handler})
