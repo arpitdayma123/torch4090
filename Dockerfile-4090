@@ -27,9 +27,14 @@ RUN apt update && \
         ca-certificates \
         libbz2-dev \
         libffi-dev \
+　　　　gnupg-curl　\
         git && \
     apt clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*　
+RUN curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey  | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit.gpg
+RUN　curl -s -L https://nvidia.github.io/libnvidia-container/ubuntu22.04/libnvidia-container.list  | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit.gpg] https://#g' | \
+    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list　&&　apt update　&&　apt install -y libcudnn8=8.9.7.29
 
 ##编译安装 Python 3.8.20
 RUN wget https://www.python.org/ftp/python/3.8.20/Python-3.8.20.tgz && tar xzf Python-3.8.20.tgz -C /
