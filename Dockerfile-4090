@@ -33,14 +33,13 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists/*　
 
 
-# 添加 NVIDIA 包仓库
-RUN curl -s -L https://nvidia.github.io/libnvidia-container/ubuntu22.04/libnvidia-container.list  | \
-    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit.gpg] https://#g' | \
-    tee /etc/apt/sources.list.d/nvidia-container-toolkit.list && \
-
-# 安装 cuDNN
+# 添加 NVIDIA 包仓库和 GPG 密钥
+RUN curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey  | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit.gpg && \
+    . /etc/os-release && \
+    echo "deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit.gpg] https://nvidia.github.io/libnvidia-container/stable/deb/amd64  $VERSION_CODENAME main" | tee /etc/apt/sources.list.d/nvidia-container-toolkit.list && \
     apt update && \
-    apt install -y libcudnn8=8.9.7.29 && \
+    apt install -y libnvidia-container-tools libnvidia-container1
+    libcudnn8=8.9.7.29 && \
     rm -rf /var/lib/apt/lists/*
 
 ##编译安装 Python 3.8.20
