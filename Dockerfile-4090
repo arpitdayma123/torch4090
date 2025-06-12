@@ -33,14 +33,15 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists/*　
 
 
-# 添加 NVIDIA 包仓库和 GPG 密钥
-RUN curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey  | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit.gpg && \
-    . /etc/os-release && \
-    echo "deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit.gpg] https://nvidia.github.io/libnvidia-container/stable/deb/amd64  $VERSION_CODENAME main" | tee /etc/apt/sources.list.d/nvidia-container-toolkit.list && \
-    apt update && \
-    apt install -y libnvidia-container-tools libnvidia-container1 \
-    libcudnn8=8.9.7.29 && \
-    rm -rf /var/lib/apt/lists/*
+# 下载相关包（按依赖顺序）
+RUN wget https://github.com/NVIDIA/libnvidia-container/raw/gh-pages/stable/deb/amd64/libnvidia-container1_1.17.0-1_amd64.deb
+RUN wget https://github.com/NVIDIA/libnvidia-container/raw/gh-pages/stable/deb/amd64/libnvidia-container-tools_1.17.0-1_amd64.deb
+RUN wget https://github.com/NVIDIA/libnvidia-container/raw/gh-pages/stable/deb/amd64/nvidia-container-toolkit-base_1.17.0-1_amd64.deb
+RUN wget https://github.com/NVIDIA/libnvidia-container/raw/gh-pages/stable/deb/amd64/nvidia-container-toolkit_1.17.0-1_amd64.deb
+
+# 按顺序安装
+RUN dpkg -i libnvidia-container1_1.17.0-1_amd64.deb libnvidia-container-tools_1.17.0-1_amd64.deb nvidia-container-toolkit-base_1.17.0-1_amd64.deb
+
 
 ##编译安装 Python 3.8.20
 RUN wget https://www.python.org/ftp/python/3.8.20/Python-3.8.20.tgz && tar xzf Python-3.8.20.tgz -C /
