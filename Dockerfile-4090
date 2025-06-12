@@ -27,7 +27,7 @@ RUN apt update && \
         ca-certificates \
         libbz2-dev \
         libffi-dev \
-　　　　gnupg　\
+        gnupg \
         git && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*　
