@@ -19,6 +19,7 @@ RUN apt update && \
         ffmpeg \
         libgl1  \
         libglib2.0-0 \
+        cuda-toolkit-11-8 \
         wget \
         curl \
         llvm \
