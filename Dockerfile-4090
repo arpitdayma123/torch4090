@@ -47,7 +47,8 @@ RUN mv HeyGem-Linux-Python-Hack /apps/HeyGem
 #COPY HeyGem  /apps/HeyGem
 #RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
-RUN cd /apps/HeyGem/  && echo "urllib" >> requirements_0.txt && echo "requests" >> requirements_0.txt  && pip install -r requirements_0.txt --extra-index-url https://download.pytorch.org/whl/cu113 
+RUN cd /apps/HeyGem/  && pip install -r requirements_0.txt --extra-index-url https://download.pytorch.org/whl/cu113 
+RUN pip install urllib requests
 
 COPY startup.sh / 
 COPY rp_handler.py  / 
