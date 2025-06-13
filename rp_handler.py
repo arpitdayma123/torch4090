@@ -3,6 +3,7 @@ import subprocess
 import requests
 from urllib.parse import urlparse
 import runpod
+from r2 import R2Uploader
 
 
 def download_file(url, dest_folder):
