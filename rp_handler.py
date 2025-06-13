@@ -1,12 +1,12 @@
 import os
+import uuid
 import subprocess
 import requests
 from urllib.parse import urlparse
 import runpod
-import uuid
-import shutil
 from r2 import R2Uploader
 import config
+from diffusers.utils import export_to_video
 
 
 # 初始化 R2 上传器
@@ -26,7 +26,7 @@ except Exception as e:
 
 def download_file(url, dest_folder):
     """
-    下载文件到指定目录
+    下载远程文件到指定目录
     """
     if not os.path.exists(dest_folder):
         os.makedirs(dest_folder)
@@ -49,8 +49,8 @@ def download_file(url, dest_folder):
 
 def handler(event):
     """
-    RunPod Serverless 处理函数
-    支持远程 URL 的 audio_path 和 video_path，并上传输出结果到 R2
+    RunPod Serverless 主函数
+    支持远程 URL 的 audio_path 和 video_path，并上传生成的视频到 R2
     """
     print("Worker Start")
     input_data = event.get("input", {})
@@ -61,12 +61,11 @@ def handler(event):
         return {"error": "Missing audio_path or video_path"}
 
     try:
-        # 创建临时工作目录以避免冲突
+        # 创建唯一临时工作目录
         unique_dir = os.path.join("/tmp", str(uuid.uuid4()))
         audio_dir = os.path.join(unique_dir, "audio")
         video_dir = os.path.join(unique_dir, "video")
         output_dir = os.path.join(unique_dir, "output")
-
         os.makedirs(output_dir, exist_ok=True)
 
         # 下载音视频
@@ -81,14 +80,19 @@ def handler(event):
             check=True
         )
 
-        # 假设 run.py 默认输出为当前目录下的 output.mp4
-        default_output_path = "output.mp4"
-        if not os.path.exists(default_output_path):
-            raise FileNotFoundError(f"Output file not found: {default_output_path}")
+        # 假设 run.py 输出帧数组（如 numpy 数组）或某种张量格式
+        # 示例路径（你可以根据 run.py 实际输出修改这里）
+        frames_path = "frames.npy"
+        if not os.path.exists(frames_path):
+            raise FileNotFoundError(f"Frames file not found: {frames_path}")
 
-        # 移动输出文件到 output_dir
-        final_output_path = os.path.join(output_dir, "output.mp4")
-        shutil.move(default_output_path, final_output_path)
+        # 加载帧数据（假设 run.py 保存为 numpy array）
+        frames = np.load(frames_path)
+
+        # 使用 export_to_video 导出为 MP4
+        output_video_path = os.path.join(output_dir, "output.mp4")
+        fps = 25  # 可从 input 中获取
+        export_to_video(frames, output_video_path, fps=fps)
 
         # 如果未初始化 R2，直接返回成功但无视频链接
         if not r2_uploader:
@@ -101,7 +105,7 @@ def handler(event):
         # 上传到 R2
         filename = f"{uuid.uuid4()}.mp4"
         r2_key = f"{config.R2_VIDEO_PREFIX}/{filename}"
-        video_url = r2_uploader.upload_file(final_output_path, key=r2_key, content_type="video/mp4")
+        video_url = r2_uploader.upload_file(output_video_path, key=r2_key, content_type="video/mp4")
 
         return {
             "stdout": result.stdout,
@@ -119,7 +123,7 @@ def handler(event):
             "stderr": e.stderr
         }
     except Exception as e:
-        return {"error": f"Unexpected error: {str(e)}"}
+        return {"error": str(e)}
     finally:
         # 清理临时目录
         if 'unique_dir' in locals() and os.path.exists(unique_dir):
