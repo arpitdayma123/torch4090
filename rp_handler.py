@@ -80,14 +80,6 @@ def handler(event):
             check=True
         )
 
-        # 假设 run.py 输出帧数组（如 numpy 数组）或某种张量格式
-        # 示例路径（你可以根据 run.py 实际输出修改这里）
-        frames_path = "frames.npy"
-        if not os.path.exists(frames_path):
-            raise FileNotFoundError(f"Frames file not found: {frames_path}")
-
-        # 加载帧数据（假设 run.py 保存为 numpy array）
-        frames = np.load(frames_path)
 
         # 使用 export_to_video 导出为 MP4
         output_video_path = os.path.join(output_dir, "output.mp4")
