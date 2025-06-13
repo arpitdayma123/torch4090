@@ -18,13 +18,13 @@ class R2Uploader:
         Args:
             access_key_id: R2 access key ID
             secret_access_key: R2 secret access key
-            endpoint: R2 endpoint URL
+            account_id: R2 account ID
             bucket_name: R2 bucket name
             public_url: Public URL prefix for the bucket
         """
         self.access_key_id = access_key_id
         self.secret_access_key = secret_access_key
-        self.endpoint = endpoint
+        self.account_id = account_id
         self.bucket_name = bucket_name
         self.public_url = public_url
 
@@ -32,7 +32,7 @@ class R2Uploader:
             [
                 self.access_key_id,
                 self.secret_access_key,
-                self.endpoint,
+                self.account_id,
                 self.bucket_name,
                 self.public_url,
             ]
