@@ -14,7 +14,7 @@ try:
     r2_uploader = R2Uploader(
         access_key_id=config.R2_ACCESS_KEY_ID,
         secret_access_key=config.R2_SECRET_ACCESS_KEY,
-        endpoint=config.R2_ENDPOINT,
+        account_id=config.R2_ACCOUNT_ID,
         bucket_name=config.R2_BUCKET_NAME,
         public_url=config.R2_PUBLIC_URL,
     )
