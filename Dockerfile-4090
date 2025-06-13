@@ -15,6 +15,11 @@ RUN apt update && \
         libncursesw5-dev \
         libreadline-dev \
         libsqlite3-dev \
+        liblzma-dev \
+        ffmpeg \
+        libgl1  \
+        libglib2.0-0 \
+        cuda-toolkit-11-8 \
         wget \
         curl \
         llvm \
@@ -22,9 +27,21 @@ RUN apt update && \
         ca-certificates \
         libbz2-dev \
         libffi-dev \
+        gnupg \
         git && \
     apt clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*　
+
+
+# 下载相关包（按依赖顺序）
+RUN wget https://github.com/NVIDIA/libnvidia-container/raw/gh-pages/stable/deb/amd64/libnvidia-container1_1.17.0-1_amd64.deb
+RUN wget https://github.com/NVIDIA/libnvidia-container/raw/gh-pages/stable/deb/amd64/libnvidia-container-tools_1.17.0-1_amd64.deb
+RUN wget https://github.com/NVIDIA/libnvidia-container/raw/gh-pages/stable/deb/amd64/nvidia-container-toolkit-base_1.17.0-1_amd64.deb
+RUN wget https://github.com/NVIDIA/libnvidia-container/raw/gh-pages/stable/deb/amd64/nvidia-container-toolkit_1.17.0-1_amd64.deb
+
+# 按顺序安装
+RUN dpkg -i libnvidia-container1_1.17.0-1_amd64.deb libnvidia-container-tools_1.17.0-1_amd64.deb nvidia-container-toolkit-base_1.17.0-1_amd64.deb
+
 
 ##编译安装 Python 3.8.20
 RUN wget https://www.python.org/ftp/python/3.8.20/Python-3.8.20.tgz && tar xzf Python-3.8.20.tgz -C /
@@ -47,7 +64,8 @@ RUN mv HeyGem-Linux-Python-Hack /apps/HeyGem
 #COPY HeyGem  /apps/HeyGem
 #RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
-RUN cd /apps/HeyGem/   && pip install -r requirements_0.txt --extra-index-url https://download.pytorch.org/whl/cu113 
+RUN cd /apps/HeyGem/ && echo "requests" >>  requirements_0.txt  && pip install -r requirements_0.txt --extra-index-url https://download.pytorch.org/whl/cu113 
+RUN pip install runpod
 
 COPY startup.sh / 
 COPY rp_handler.py  / 
