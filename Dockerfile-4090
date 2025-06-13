@@ -70,6 +70,7 @@ RUN pip install runpod
 COPY startup.sh / 
 COPY rp_handler.py  / 
 COPY r2.py /
+COPY config.py /
 RUN chmod +x /startup.sh
 
 CMD ["/startup.sh"]
