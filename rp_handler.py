@@ -5,6 +5,8 @@ from urllib.parse import urlparse
 import runpod
 from r2 import R2Uploader
 import config
+import uuid
+import shutil
 
 
 # 初始化 R2 上传器
@@ -71,25 +73,23 @@ def handler(event):
         audio_path = download_file(audio_url, audio_dir)
         video_path = download_file(video_url, video_dir)
 
-        # 定义输出路径（假设 run.py 会生成 output.mp4）
-        output_video_path = os.path.join(output_dir, "output.mp4")
-
-        # 执行你的 Python 脚本
+        # 执行你的 Python 脚本（不带 output_path）
         result = subprocess.run(
-            [
-                "python", "run.py",
-                "--audio_path", audio_path,
-                "--video_path", video_path,
-                "--output_path", output_video_path
-            ],
+            ["python", "run.py", "--audio_path", audio_path, "--video_path", video_path],
             capture_output=True,
             text=True,
             check=True
         )
 
-        # 检查输出是否存在
-        if not os.path.exists(output_video_path):
-            raise FileNotFoundError(f"Output file not found: {output_video_path}")
+        # 假设 run.py 输出为当前目录下的 output.mp4
+        default_output_path = "output.mp4"
+
+        if not os.path.exists(default_output_path):
+            raise FileNotFoundError(f"Output file not found: {default_output_path}")
+
+        # 移动输出文件到 output_dir
+        final_output_path = os.path.join(output_dir, "output.mp4")
+        shutil.move(default_output_path, final_output_path)
 
         # 如果未初始化 R2，直接返回成功但无视频链接
         if not r2_uploader:
@@ -102,7 +102,7 @@ def handler(event):
         # 上传到 R2
         filename = f"{uuid.uuid4()}.mp4"
         r2_key = f"{config.R2_VIDEO_PREFIX}/{filename}"
-        video_url = r2_uploader.upload_file(output_video_path, key=r2_key, content_type="video/mp4")
+        video_url = r2_uploader.upload_file(final_output_path, key=r2_key, content_type="video/mp4")
 
         return {
             "stdout": result.stdout,
@@ -133,5 +133,4 @@ def handler(event):
 
 
 if __name__ == "__main__":
-    import uuid
     runpod.serverless.start({"handler": handler})
