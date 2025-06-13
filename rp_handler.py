@@ -4,17 +4,27 @@ import requests
 from urllib.parse import urlparse
 import runpod
 from r2 import R2Uploader
-import config
+import config  # 你的 config.py
 import uuid
 import shutil
 
 
 # 初始化 R2 上传器
 try:
+    # 确保所有必要字段都已设置
+    if not all([
+        config.R2_ACCESS_KEY_ID,
+        config.R2_SECRET_ACCESS_KEY,
+        config.R2_BUCKET_NAME,
+        config.R2_PUBLIC_URL,
+        config.R2_ENDPOINT
+    ]):
+        raise ValueError("One or more R2 config values are missing")
+
     r2_uploader = R2Uploader(
         access_key_id=config.R2_ACCESS_KEY_ID,
         secret_access_key=config.R2_SECRET_ACCESS_KEY,
-        account_id=config.R2_ACCOUNT_ID,
+        endpoint=config.R2_ENDPOINT,
         bucket_name=config.R2_BUCKET_NAME,
         public_url=config.R2_PUBLIC_URL,
     )
@@ -96,7 +106,7 @@ def handler(event):
             return {
                 "stdout": result.stdout,
                 "stderr": result.stderr,
-                "message": "Processing completed but R2 upload failed (not configured)."
+                "message": "Processing completed but R2 upload skipped (not configured)."
             }
 
         # 上传到 R2
