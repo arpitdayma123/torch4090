@@ -7,6 +7,9 @@ import runpod
 from r2 import R2Uploader
 import config
 from diffusers.utils import export_to_video
+from PIL import Image
+import numpy as np
+import shutil
 
 
 # 初始化 R2 上传器
@@ -53,6 +56,12 @@ def handler(event):
     支持远程 URL 的 audio_path 和 video_path，并上传生成的视频到 R2
     """
     print("Worker Start")
+
+    # 设置 matplotlib 缓存目录
+    mpl_cache_dir = "/tmp/matplotlib_cache"
+    os.makedirs(mpl_cache_dir, exist_ok=True)
+    os.environ["MPLCONFIGDIR"] = mpl_cache_dir
+
     input_data = event.get("input", {})
     audio_url = input_data.get("audio_path")
     video_url = input_data.get("video_path")
@@ -60,6 +69,7 @@ def handler(event):
     if not audio_url or not video_url:
         return {"error": "Missing audio_path or video_path"}
 
+    unique_dir = None
     try:
         # 创建唯一临时工作目录
         unique_dir = os.path.join("/tmp", str(uuid.uuid4()))
@@ -72,7 +82,7 @@ def handler(event):
         audio_path = download_file(audio_url, audio_dir)
         video_path = download_file(video_url, video_dir)
 
-        # 执行你的 Python 脚本（不带 --output_path）
+        # 执行你的 Python 脚本
         result = subprocess.run(
             ["python", "run.py", "--audio_path", audio_path, "--video_path", video_path],
             capture_output=True,
@@ -80,10 +90,17 @@ def handler(event):
             check=True
         )
 
+        # 自动探测当前目录下的 PNG/JPG 图像帧
+        image_files = [f for f in os.listdir(".") if f.endswith(".png") or f.endswith(".jpg")]
+        if not image_files:
+            raise FileNotFoundError("No image files found for video export")
 
-        # 使用 export_to_video 导出为 MP4
+        # 加载图像帧为 NumPy 数组
+        frames = np.array([np.array(Image.open(img)) for img in sorted(image_files)])
+
+        # 导出为 MP4
         output_video_path = os.path.join(output_dir, "output.mp4")
-        fps = 25  # 可从 input 中获取
+        fps = input_data.get("fps", 25)
         export_to_video(frames, output_video_path, fps=fps)
 
         # 如果未初始化 R2，直接返回成功但无视频链接
@@ -118,13 +135,19 @@ def handler(event):
         return {"error": str(e)}
     finally:
         # 清理临时目录
-        if 'unique_dir' in locals() and os.path.exists(unique_dir):
-            for root, dirs, files in os.walk(unique_dir, topdown=False):
-                for name in files:
-                    os.remove(os.path.join(root, name))
-                for name in dirs:
-                    os.rmdir(os.path.join(root, name))
-            os.rmdir(unique_dir)
+        if unique_dir and os.path.exists(unique_dir):
+            try:
+                shutil.rmtree(unique_dir)
+            except Exception as e:
+                print(f"Failed to remove tmp dir: {str(e)}")
+
+        # 清理图像帧
+        image_files = [f for f in os.listdir(".") if f.endswith((".png", ".jpg"))]
+        for f in image_files:
+            try:
+                os.remove(f)
+            except Exception as e:
+                print(f"Failed to remove file {f}: {str(e)}")
 
 
 if __name__ == "__main__":
