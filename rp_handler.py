@@ -134,7 +134,7 @@ def handler(event):
                 for name in dirs:
                     os.rmdir(os.path.join(root, name))
             os.rmdir(unique_dir)
-
+ 
 
 if __name__ == "__main__":
     runpod.serverless.start({"handler": handler})
