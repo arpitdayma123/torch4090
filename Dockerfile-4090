@@ -64,8 +64,8 @@ RUN mv HeyGem-Linux-Python-Hack /apps/HeyGem
 #COPY HeyGem  /apps/HeyGem
 #RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
-RUN cd /apps/HeyGem/ && echo "requests" >>  requirements_0.txt  && pip install -r requirements_0.txt --extra-index-url https://download.pytorch.org/whl/cu113 && pip install boto3 requests moviepy pillow numpy ffmpeg-python
-RUN pip install runpod
+RUN cd /apps/HeyGem/ && echo "requests" >>  requirements_0.txt && echo "diffusers" >>  requirements_0.txt && pip install -r requirements_0.txt --extra-index-url https://download.pytorch.org/whl/cu113 && pip install boto3 requests moviepy pillow numpy ffmpeg-python
+RUN pip install runpod 
 
 COPY startup.sh / 
 COPY rp_handler.py  / 
