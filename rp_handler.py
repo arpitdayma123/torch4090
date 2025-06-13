@@ -3,28 +3,18 @@ import subprocess
 import requests
 from urllib.parse import urlparse
 import runpod
-from r2 import R2Uploader
-import config  # 你的 config.py
 import uuid
 import shutil
+from r2 import R2Uploader
+import config
 
 
 # 初始化 R2 上传器
 try:
-    # 确保所有必要字段都已设置
-    if not all([
-        config.R2_ACCESS_KEY_ID,
-        config.R2_SECRET_ACCESS_KEY,
-        config.R2_BUCKET_NAME,
-        config.R2_PUBLIC_URL,
-        config.R2_ENDPOINT
-    ]):
-        raise ValueError("One or more R2 config values are missing")
-
     r2_uploader = R2Uploader(
         access_key_id=config.R2_ACCESS_KEY_ID,
         secret_access_key=config.R2_SECRET_ACCESS_KEY,
-        endpoint=config.R2_ENDPOINT,
+        endpoint=f"https://{config.R2_ACCOUNT_ID}.r2.cloudflarestorage.com", 
         bucket_name=config.R2_BUCKET_NAME,
         public_url=config.R2_PUBLIC_URL,
     )
@@ -83,7 +73,7 @@ def handler(event):
         audio_path = download_file(audio_url, audio_dir)
         video_path = download_file(video_url, video_dir)
 
-        # 执行你的 Python 脚本（不带 output_path）
+        # 执行你的 Python 脚本（不带 --output_path）
         result = subprocess.run(
             ["python", "run.py", "--audio_path", audio_path, "--video_path", video_path],
             capture_output=True,
@@ -91,9 +81,8 @@ def handler(event):
             check=True
         )
 
-        # 假设 run.py 输出为当前目录下的 output.mp4
+        # 假设 run.py 默认输出为当前目录下的 output.mp4
         default_output_path = "output.mp4"
-
         if not os.path.exists(default_output_path):
             raise FileNotFoundError(f"Output file not found: {default_output_path}")
 
@@ -106,7 +95,7 @@ def handler(event):
             return {
                 "stdout": result.stdout,
                 "stderr": result.stderr,
-                "message": "Processing completed but R2 upload skipped (not configured)."
+                "message": "Processing completed but R2 upload failed (not configured)."
             }
 
         # 上传到 R2
