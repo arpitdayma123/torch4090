@@ -11,3 +11,8 @@ RUN cp /var/cudnn-local-repo-ubuntu2204-8.6.0.163/cudnn-local-FAED14DD-keyring.g
 
 RUN  cd /var/cudnn-local-repo-ubuntu2204-8.6.0.163/ && dpkg -i libcudnn8_8.6.0.163-1+cuda11.8_amd64.deb libcudnn8-dev_8.6.0.163-1+cuda11.8_amd64.deb libcudnn8-samples_8.6.0.163-1+cuda11.8_amd64.deb
 
+
+
+
+###需要额外下载的requirement包
+echo "requests" >>  requirements_0.txt && echo "diffusers" >>  requirements_0.txt 
