@@ -14,5 +14,5 @@ RUN  cd /var/cudnn-local-repo-ubuntu2204-8.6.0.163/ && dpkg -i libcudnn8_8.6.0.1
 
 
 
-###需要额外下载的requirement包
+###需要额外下载的requirement包，已添加
 echo "requests" >>  requirements_0.txt && echo "diffusers" >>  requirements_0.txt 
